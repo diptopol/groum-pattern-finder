@@ -1,5 +1,7 @@
 # This is a sample Python script.
 import os
+import csv
+from pathlib import Path
 from graphframes import *
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
@@ -65,9 +67,19 @@ def search(g, q):
     for filter in filter_values:
         motif = motif.filter(filter)
 
-    print("Motif Info: " + str(q.select("query_id").distinct().collect()[0]))
-    print(toCSVLineRDD(motif.rdd))
-    print(motif.count())
+    return motif.count()
+
+def writeTOCSV(query_counts):
+    file_name = "query_count.csv"
+    output_file = Path(file_name)
+
+    if output_file.is_file():
+        os.remove(file_name)
+
+    with open(file_name, 'w') as out:
+        csv_out = csv.writer(out)
+        csv_out.writerow(['query_id', 'count'])
+        csv_out.writerows(query_counts)
 
 if __name__ == '__main__':
     init_spark()
@@ -78,10 +90,14 @@ if __name__ == '__main__':
 
     g = GraphFrame(v, e)
     q = prepareQuery(q)
+    query_counts = []
 
     min = int(q.select("query_id").rdd.min()[0])
     max = int(q.select("query_id").rdd.max()[0]) + 1
 
     for i in range(min, max):
         filtered_query = q.where(q.query_id == i)
-        search(g, filtered_query)
+        count = search(g, filtered_query)
+        query_counts.append((i, count))
+
+    writeTOCSV(query_counts)

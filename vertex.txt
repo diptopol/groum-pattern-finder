@@ -70,3 +70,9 @@ id,name
 144,List<EVCacheClientImpl>.get
 138,IF
 157,Client.target
+160,List<EVCacheClientImpl>.size
+159,IF
+161,List<EVCacheClientImpl>.get
+163,List<EVCacheClientImpl>.size
+164,List<EVCacheClientImpl>.get
+158,IF
